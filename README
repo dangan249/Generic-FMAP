@@ -1,0 +1,77 @@
+/**********************************************************************/
+This algebraic Specification was specified by:
+Professor:  William D Clinger 
+Northeastern University - College of Computer Science
+
+Implementor: An Dang
+
+/**********************************************************************/
+
+
+Signature:
+
+  Static methods:
+
+    emptyMap     :                    ->  FMap
+
+  Dynamic methods (for which the receiver is an FMap<K,V>):
+
+    add          :  K x V             ->  FMap
+    isEmpty      :                    ->  boolean
+    size         :                    ->  int
+    containsKey  :  K                 ->  boolean
+    get          :  K                 ->  V
+    toString     :                    ->  String
+    equals       :  Object            ->  boolean
+    hashCode     :                    ->  int
+
+
+Values of the FMap<K,V> ADT shall also implement the public
+dynamic methods equals(Object) and hashCode() such that
+
+    If m1 and m2 are values of the FMap ADT, then
+    m1.equals(m2) if and only if
+
+    for every non-null K k
+
+            m1.containsKey(k) if and only if m2.containsKey(k)
+
+    and for every non-null K k
+
+            if m1.containsKey(k)
+            then m1.get(k).equals(m2.get(k))
+
+    If m1 is a value of the FMap ADT, but x is not, then
+
+        m1.equals(x) returns false.
+
+    If m1 and m2 are values of the FMap ADT, and
+
+        m1.equals(m2)
+
+    then m1.hashCode() == m2.hashCode().
+
+    If f1 and f2 are values of the FMap<K,V> ADT, and
+
+        !(f1.equals(f2))
+
+    then f1.hashCode() is unlikely to be equal to f2.hashCode().
+
+Note:  The word "unlikely" will be interpreted as follows.
+For every type K and V, if both f1 and f2 are selected at
+random from a set of FMap<K,V> values such that for every
+non-negative integer n and int value h the probability
+of a randomly selected f having n == f.size() is
+
+    P(n) = 1/(2^(n+1))
+
+and for each key k such that f.containsKey(k) the
+probability that h == k.hashCode() is at most 1/4
+
+and for each value v such that v.equals(f.get(k)) the
+probability that h == v.hashCode() is at most 1/4
+
+and the three probabilities above are independent
+
+then the probability of f1.hashCode() == f2.hashCode() when
+f1 and f2 are not equal is less than 6%.
