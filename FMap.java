@@ -1,7 +1,7 @@
 /************************************************************/
 /*  Programmer: An Dang                                     */
 /*  Email: dang.an249@gmail.com                             */
-/*  Time Spent: 2 hours                                     */
+/*  Time Spent: 4 hours                                     */
 /************************************************************/
 
 // FMap<K,V> is either:
@@ -13,12 +13,13 @@ public abstract class FMap<K,V> {
     
     
     // emptyMap():  ->  FMap<K,V>
-    public static FMap emptyMap() {
-	return new EmptyMap() ;
+    
+    public static <K,V>  FMap<K,V> emptyMap() {
+	return new EmptyMap<K,V>() ;
     }
 
     // add():  K x V  ->  FMap
-    public abstract FMap add( K k0, V v0 ) ; 
+    public abstract FMap<K,V> add( K k0, V v0 ) ; 
 
     // isEmpty():      ->  boolean
     public abstract boolean isEmpty() ;
@@ -46,6 +47,8 @@ public abstract class FMap<K,V> {
 // class of empty FMap
 class EmptyMap<K,V> extends FMap<K,V>{
     
+    @SuppressWarnings(value="unchecked")
+    EmptyMap() {}
     public boolean isEmpty (){
 	return true ;
     }
@@ -61,8 +64,8 @@ class EmptyMap<K,V> extends FMap<K,V>{
     public V get( K k0 ) {
 	return null ;
     }
-
-    public FMap add( K k0, V v0 ){
+    
+    public FMap<K,V> add( K k0, V v0 ){
 	return new Add<K,V> ( this, k0, v0 ) ;
     }
 
@@ -95,11 +98,11 @@ class EmptyMap<K,V> extends FMap<K,V>{
 // Add<K,V>( FMap, K, V )
 class Add<K,V> extends FMap<K,V> {
     
-    FMap m0 ;  // the old FMap structure    
+    FMap<K,V> m0 ;  // the old FMap structure    
     K k0 ;   // the new key
     V v0 ; // the new value
     
-    Add( FMap m0, K k0, V v0 ) {
+    Add( FMap<K,V> m0, K k0, V v0 ) {
 	this.m0 = m0 ;
 	this.k0 = k0 ;
 	this.v0 = v0 ;
@@ -134,7 +137,7 @@ class Add<K,V> extends FMap<K,V> {
 	    return (V) m0.get( x ) ;
     }
 
-    public FMap add( K k0, V v0 ){
+    public FMap<K,V> add( K k0, V v0 ){
 	return new Add<K,V> ( this, k0, v0 ) ;
     }
 
@@ -142,23 +145,25 @@ class Add<K,V> extends FMap<K,V> {
 	return "{...(" + this.size() + " entries)...}" ;
     }
     
-    
+    @SuppressWarnings(value="unchecked")
     public boolean equals( Object ob ){
 	
-	FMap temp ;
+	FMap<K,V> temp ;
 	if (! ( ob instanceof FMap ) )
 	    return false ;
 	else{
-	    temp = (FMap) ob ;
+	    
+	    temp = (FMap<K,V>) ob ;
 	    if ( temp.isEmpty() )
 		return false ;
-	    else if ( samekeys( this, (Add) temp )  && samepairs( this, this, (Add) temp ))
+	    else if ( samekeys( this, (Add) temp )  
+		      && samepairs( this, this, (Add) temp ))
 		return true ;
 	    else
 		return false ;
 	}
     }
-
+    
     public int hashCode(){
 	K K_temp ;
 	V V_temp ;
@@ -167,10 +172,11 @@ class Add<K,V> extends FMap<K,V> {
 	ArrayList<K> currentKeys = new ArrayList<K>() ;
 	getKeys(this, currentKeys) ;
 	numKeys = currentKeys.size() ;
+
 	for( int i = 0 ; i < numKeys ; i++ ){
 	    K_temp = currentKeys.get(i) ;
 	    V_temp = this.get( K_temp ) ;
-	    System.out.println( K_temp.toString() +" "+ V_temp.toString() ) ;
+	    
 	    hashCode += (195 + 5 * (3 + K_temp.hashCode())  
 			 + 7 * ( 11 + V_temp.hashCode() )) ;
 	}
@@ -178,7 +184,7 @@ class Add<K,V> extends FMap<K,V> {
 	return hashCode ;
     }
     
-    void getKeys( Add m, ArrayList array ){
+    private <K> void getKeys( Add<K,V> m, ArrayList<K> array ){
 	
 	if ( m.m0.isEmpty() ){
 	    if ( array.contains( m.k0 ) )
@@ -190,10 +196,10 @@ class Add<K,V> extends FMap<K,V> {
 	}
 	else{
 	    if ( array.contains( m.k0 ) )
-		getKeys( (Add) m.m0, array ) ;
+		getKeys( (Add<K,V>) m.m0, array ) ;
 	    else{
 	    array.add( m.k0 ) ;
-	    getKeys( (Add) m.m0, array ) ;
+	    getKeys(  (Add<K,V>) m.m0, array ) ;
 	    }
 	}	
 	return ;
@@ -201,7 +207,7 @@ class Add<K,V> extends FMap<K,V> {
     
     // samekeys: Add x Add -> boolean
     // check if the two Adds (same size) has the same set of keys, 
-    boolean samekeys( Add m1 , Add m2 ){
+    private <K,V> boolean samekeys( Add<K,V> m1 , Add<K,V> m2 ){
 	
 	if ( containAll( m1, m2 ) && containAll( m2, m1 ) )
 	    return true ;
@@ -212,7 +218,7 @@ class Add<K,V> extends FMap<K,V> {
 
     // containAll: Add x Add -> boolean
     // check whether first Add contain all the key in second FMap
-    boolean containAll( Add m1 , Add m2 ){
+    private <K,V> boolean containAll( Add<K,V> m1 , Add<K,V> m2 ){
 	
 	//case: m2 = Add( m0 = EmptyMap, k0 , v0 )
 	if ( m2.m0.isEmpty() ) {
@@ -224,26 +230,27 @@ class Add<K,V> extends FMap<K,V> {
 
 	//case: m2 = Add( m0 = Add, k0, v0 )
 	if ( m1.containsKey( m2.k0 ) )
-	    return containAll( m1, (Add) m2.m0 ) ;
+	    return containAll( m1, (Add<K,V>) m2.m0 ) ;
 	else
 	    return false ;
     }
 	
 
     // sameValues: Add X Add x Add -> boolean
-    // check if the two maps (same size) has the same set of key-value pair
-    // assumption: the two FMap already have the same keys <-> but one may have dublicate keys
-    // m1copy : the first Add shrinks 
-    // -> thus need another copy to correctly the FMap.get ( copy, key of shrinking m1 )
-    boolean samepairs( Add m1 , Add m1copy , Add m2 ){
+    // check if the two maps (same size) 
+    // has the same set of key-value pair
+    // assumption: the two FMap already have the same keys
+    // <-> but one may have dublicate keys
+   
+    private <K,V> boolean samepairs( Add<K,V> m1, Add<K,V> m1copy
+				     , Add<K,V> m2 ){
 	
-
 	if ( m1copy.get( m1.k0 ).equals( m2.get(  m1.k0 ) ) ){
 	
 	    if ( m1.m0.isEmpty() )
 		return true;
 	    else
-		return samepairs ( (Add) m1.m0 , m1copy , m2 ) ;
+		return samepairs ( (Add<K,V>) m1.m0 , m1copy , m2 ) ;
 	}
 	else 
 	    return false ;
