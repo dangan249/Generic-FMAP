@@ -8,47 +8,48 @@
 // -- EmptyMap
 // -- Add( FMap, K, V )
 
-import java.util.ArrayList ;
-public abstract class FMap<K,V> {
+import java.util.* ;
+
+public abstract class FMap<K,V> implements Iterable<K>{
     
-    
-    // emptyMap():  ->  FMap<K,V>
-    
+    // emptyMap
     public static <K,V>  FMap<K,V> emptyMap() {
 	return new EmptyMap<K,V>() ;
     }
 
-    // add():  K x V  ->  FMap
-    public abstract FMap<K,V> add( K k0, V v0 ) ; 
-
-    // isEmpty():      ->  boolean
-    public abstract boolean isEmpty() ;
-
-    // size():   ->  int
-    public abstract int size() ;
+    // emptyMap(c)
+public static <K,V>  FMap<K,V> emptyMap( java.util.Comparator<? super K> c){
+    return new EmptyMap<K,V>( c ) ;
+}
     
-    // containsKey:  K  ->  boolean
+    public abstract Iterator<K> iterator() ;
+
+    public abstract FMap<K,V> add( K k0, V v0 ) ; 
+    public abstract boolean isEmpty() ;
+    public abstract int size() ;
     public abstract boolean containsKey( K x ) ;
-
-    // get:  K   ->  V
     public abstract V get( K x ) ;
-						
-    //toString():   ->  String
-     public abstract String toString() ;
-
-    // equals(): Object -> boolean
-     public abstract boolean equals( Object x ) ;
-
-    // hashCode():    -> int
+    public abstract String toString() ;
+    public abstract boolean equals( Object x ) ;
     public abstract int hashCode() ;
-
+    
 }
 
 // class of empty FMap
 class EmptyMap<K,V> extends FMap<K,V>{
+
+    java.util.Comparator<? super K> c = null ;	
+    // the comparator for this.add( k0, v0 )'s keys
     
     @SuppressWarnings(value="unchecked")
     EmptyMap() {}
+    
+    
+    EmptyMap(java.util.Comparator<? super K> c ){
+	this.c = c ;
+    }
+   
+
     public boolean isEmpty (){
 	return true ;
     }
@@ -90,6 +91,12 @@ class EmptyMap<K,V> extends FMap<K,V>{
 	return 924 ;
     }
     
+    @Override
+    public Iterator<K> iterator(){
+	ArrayList<K> currentKeys = new ArrayList<K>() ;
+	return new KeyIterator<K>( currentKeys ) ; 
+
+    }
     
 }
 
@@ -107,6 +114,7 @@ class Add<K,V> extends FMap<K,V> {
 	this.k0 = k0 ;
 	this.v0 = v0 ;
     } 
+    
     
     public boolean isEmpty (){
 	return false ;
@@ -134,7 +142,7 @@ class Add<K,V> extends FMap<K,V> {
 	if ( x.equals( k0 ) )
 	    return v0 ;
 	else 
-	    return (V) m0.get( x ) ;
+	    return m0.get( x ) ;
     }
 
     public FMap<K,V> add( K k0, V v0 ){
@@ -184,6 +192,40 @@ class Add<K,V> extends FMap<K,V> {
 	return hashCode ;
     }
     
+    @SuppressWarnings(value="unchecked")
+    @Override
+    public Iterator<K> iterator(){
+
+	java.util.Comparator<? super K> c ;
+
+	EmptyMap temp; 
+	Add Add_temp = this ;
+	FMap <K,V> m0_temp = Add_temp.m0 ;
+
+	ArrayList<K> currentKeys = new ArrayList<K>() ;
+	getKeys(this, currentKeys) ;
+	
+	// check whether the empty map is EmptyMap() or EmptyMap(c)
+	// get the empty map comparator object
+	while( !( m0_temp.isEmpty() ) ){
+	    Add_temp = (Add) m0_temp ;
+	    m0_temp = Add_temp.m0 ;
+	}
+
+	// m0_temp now is the empty map
+	temp = (EmptyMap) m0_temp;
+	c = temp.c ;
+	// check whether emptyMap.c is null or not
+	// sort the keys here
+	if( c != null ) 
+	    Collections.sort(currentKeys, c);
+	
+	return new KeyIterator<K> ( currentKeys ) ;
+    }
+
+    
+    // get all the keys of an Add, exclude duplicate keys
+    // store keys in the ArrayList argument 
     private <K> void getKeys( Add<K,V> m, ArrayList<K> array ){
 	
 	if ( m.m0.isEmpty() ){
@@ -256,4 +298,36 @@ class Add<K,V> extends FMap<K,V> {
 	    return false ;
     }
     
+}
+
+
+class KeyIterator<K> implements Iterator<K>{
+    
+    ArrayList<K> currentKeys ; 
+    // currentKeys is the list of keys of an FMap
+    // currentKeys has no duplicated and 
+    // already sorted if comparator is specified
+
+    KeyIterator( ArrayList<K> Keys ){
+	this.currentKeys = Keys ;
+    } 
+
+
+    public void remove(){
+	// some message
+	throw new UnsupportedOperationException("remove");
+    }
+    
+    public boolean hasNext(){
+	return !( currentKeys.isEmpty() ) ;
+    }
+
+    public K next(){
+	if( currentKeys.isEmpty() )
+	    throw new NoSuchElementException("next (exception)") ;
+	
+	else
+	    return currentKeys.remove( 0 ) ;
+    }
+
 }
