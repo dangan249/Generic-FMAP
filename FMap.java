@@ -18,9 +18,9 @@ public abstract class FMap<K,V> implements Iterable<K>{
     }
 
     // emptyMap(c)
-public static <K,V>  FMap<K,V> emptyMap( java.util.Comparator<? super K> c){
-    return new EmptyMap<K,V>( c ) ;
-}
+    public static <K,V>  FMap<K,V> emptyMap( java.util.Comparator<? super K> c){
+        return new EmptyMap<K,V>( c ) ;
+    }
     
     public abstract Iterator<K> iterator() ;
 
